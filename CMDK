@@ -1,0 +1,1333 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/index.html b/index.html
+index 07f247d3a170ecb5ecfcff8ee9f2db747448b5de..6c3e86560f027643decfa2d983eaab55fd002a8c 100644
+--- a/index.html
++++ b/index.html
+@@ -1,557 +1,784 @@
+ <!DOCTYPE html>
+ <html lang="fr">
+ <head>
+-    <meta charset="UTF-8">
+-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+-    <title>Maintenance CMDK</title>
+-    <style>
+-        body {
+-            font-family: Arial, sans-serif;
+-            margin: 0;
+-            padding: 0;
+-            background-color: #f4f4f4;
+-            display: flex;
+-            flex-direction: column;
+-            min-height: 100vh;
+-        }
+-        header {
+-            background-color: #007bff;
+-            color: white;
+-            padding: 10px;
+-            text-align: center;
+-        }
+-        nav {
+-            background-color: #e9ecef;
+-            padding: 10px;
+-            display: flex;
+-            justify-content: center;
+-            flex-wrap: wrap;
+-        }
+-        nav button {
+-            margin: 5px;
+-            padding: 10px 15px;
+-            background-color: #28a745;
+-            color: white;
+-            border: none;
+-            border-radius: 5px;
+-            cursor: pointer;
+-        }
+-        nav button:hover {
+-            background-color: #218838;
+-        }
+-        main {
+-            flex: 1;
+-            padding: 20px;
+-            max-width: 100%;
+-            overflow-x: auto;
+-        }
+-        .tab-content {
+-            display: none;
+-        }
+-        .tab-content.active {
+-            display: block;
+-        }
+-        table {
+-            width: 100%;
+-            border-collapse: collapse;
+-            margin-bottom: 20px;
+-        }
+-        th, td {
+-            border: 1px solid #ddd;
+-            padding: 8px;
+-            text-align: left;
+-        }
+-        th {
+-            background-color: #007bff;
+-            color: white;
+-        }
+-        form {
+-            margin-bottom: 20px;
+-        }
+-        input, select {
+-            width: 100%;
+-            padding: 8px;
+-            margin: 5px 0;
+-            box-sizing: border-box;
+-        }
+-        button {
+-            padding: 10px;
+-            background-color: #007bff;
+-            color: white;
+-            border: none;
+-            border-radius: 5px;
+-            cursor: pointer;
+-        }
+-        button:hover {
+-            background-color: #0056b3;
+-        }
+-        #completed-tasks {
+-            margin-top: 20px;
+-        }
+-        footer {
+-            background-color: #007bff;
+-            color: white;
+-            text-align: center;
+-            padding: 10px;
+-        }
+-        @media (max-width: 600px) {
+-            nav {
+-                flex-direction: column;
+-            }
+-        }
+-    </style>
++  <meta charset="UTF-8">
++  <meta name="viewport" content="width=device-width, initial-scale=1.0">
++  <title>Suivi de maintenance CMDK</title>
++  <style>
++    :root {
++      --primary: #0a63c7;
++      --secondary: #0f3057;
++      --accent: #30c37c;
++      --light: #f6f8fb;
++      --border: #dfe3eb;
++      --text: #1c2a3a;
++    }
++
++    * { box-sizing: border-box; }
++
++    body {
++      margin: 0;
++      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
++      background: var(--light);
++      color: var(--text);
++    }
++
++    header {
++      background: linear-gradient(120deg, var(--secondary), var(--primary));
++      color: #fff;
++      padding: 24px 32px;
++      display: flex;
++      align-items: center;
++      justify-content: space-between;
++      flex-wrap: wrap;
++      gap: 12px;
++    }
++
++    header .titles h1 {
++      margin: 0 0 4px;
++      font-size: 26px;
++    }
++
++    header .titles p {
++      margin: 0;
++      opacity: 0.86;
++    }
++
++    .badge {
++      background: rgba(255, 255, 255, 0.14);
++      border: 1px solid rgba(255, 255, 255, 0.25);
++      border-radius: 12px;
++      padding: 10px 14px;
++      backdrop-filter: blur(6px);
++    }
++
++    nav {
++      background: #fff;
++      border-bottom: 1px solid var(--border);
++      display: flex;
++      align-items: center;
++      gap: 12px;
++      padding: 12px 24px;
++      position: sticky;
++      top: 0;
++      z-index: 10;
++    }
++
++    .dropdown {
++      position: relative;
++    }
++
++    .menu-button {
++      background: #fff;
++      border: 1px solid var(--border);
++      border-radius: 10px;
++      padding: 10px 12px;
++      cursor: pointer;
++      display: inline-flex;
++      align-items: center;
++      gap: 6px;
++      color: var(--text);
++      min-width: 170px;
++    }
++
++    .menu-button:hover { border-color: var(--primary); }
++
++    .dropdown-content {
++      display: none;
++      position: absolute;
++      background-color: #fff;
++      border: 1px solid var(--border);
++      border-radius: 10px;
++      min-width: 180px;
++      padding: 8px 0;
++      box-shadow: 0 10px 30px rgba(28, 42, 58, 0.12);
++    }
++
++    .dropdown-content button,
++    .dropdown-content a {
++      width: 100%;
++      border: none;
++      background: transparent;
++      text-align: left;
++      padding: 10px 16px;
++      cursor: pointer;
++      color: var(--text);
++      text-decoration: none;
++      display: block;
++    }
++
++    .dropdown-content button:hover,
++    .dropdown-content a:hover {
++      background: var(--light);
++    }
++
++    .dropdown:hover .dropdown-content { display: block; }
++
++    main {
++      padding: 22px 24px 48px;
++      max-width: 1200px;
++      margin: 0 auto;
++      display: flex;
++      flex-direction: column;
++      gap: 24px;
++    }
++
++    section {
++      background: #fff;
++      border: 1px solid var(--border);
++      border-radius: 16px;
++      padding: 20px;
++      box-shadow: 0 4px 18px rgba(12, 28, 44, 0.06);
++    }
++
++    h2 { margin-top: 0; }
++
++    .stats-grid {
++      display: grid;
++      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
++      gap: 14px;
++    }
++
++    .stat-card {
++      border: 1px solid var(--border);
++      border-radius: 14px;
++      padding: 16px;
++      background: linear-gradient(180deg, #fff, #f9fbff);
++    }
++
++    .stat-card h3 { margin: 0 0 6px; font-size: 15px; opacity: 0.8; }
++    .stat-card .value { font-size: 26px; font-weight: 700; }
++    .stat-card small { color: #4b5563; }
++
++    .form-grid {
++      display: grid;
++      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
++      gap: 12px;
++    }
++
++    label { font-weight: 600; display: block; margin-bottom: 6px; }
++
++    input, select, textarea {
++      width: 100%;
++      padding: 10px 12px;
++      border-radius: 10px;
++      border: 1px solid var(--border);
++      font-size: 14px;
++      resize: vertical;
++    }
++
++    button.primary {
++      background: var(--primary);
++      color: #fff;
++      border: none;
++      border-radius: 10px;
++      padding: 12px 16px;
++      font-weight: 700;
++      cursor: pointer;
++    }
++
++    button.primary:disabled { background: #cfd5de; cursor: not-allowed; }
++
++    .board-grid {
++      display: grid;
++      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
++      gap: 14px;
++    }
++
++    .board-column {
++      border: 1px solid var(--border);
++      border-radius: 14px;
++      padding: 12px;
++      background: #fbfcfe;
++    }
++
++    .board-column h3 { margin-top: 0; }
++
++    .task-card {
++      background: #fff;
++      border: 1px solid var(--border);
++      border-radius: 12px;
++      padding: 10px 12px;
++      margin-bottom: 10px;
++      display: flex;
++      flex-direction: column;
++      gap: 8px;
++    }
++
++    .task-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
++    .status-pill {
++      padding: 4px 8px;
++      border-radius: 999px;
++      font-size: 12px;
++      font-weight: 700;
++      border: 1px solid;
++    }
++
++    .status-pill.waiting { color: #b45309; border-color: #f59e0b; background: #fef3c7; }
++    .status-pill.running { color: #0f766e; border-color: #0d9488; background: #ccfbf1; }
++    .status-pill.done { color: #166534; border-color: #16a34a; background: #dcfce7; }
++
++    .muted { color: #6b7280; font-size: 13px; }
++
++    .actions { display: flex; gap: 8px; align-items: center; }
++    .link-btn { background: transparent; color: var(--primary); border: none; cursor: pointer; padding: 0; }
++    .link-btn:disabled { color: #9aa5b4; cursor: not-allowed; }
++
++    .reports-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
++
++    .alert {
++      background: #fef3c7;
++      border: 1px solid #fcd34d;
++      color: #92400e;
++      padding: 12px 14px;
++      border-radius: 12px;
++      margin: 12px 0;
++    }
++
++    .auth-banner {
++      background: #e0f2fe;
++      border: 1px solid #bae6fd;
++      color: #0b3c68;
++      padding: 10px 14px;
++      border-radius: 12px;
++      display: flex;
++      justify-content: space-between;
++      align-items: center;
++      gap: 12px;
++      flex-wrap: wrap;
++    }
++
++    .modal-backdrop {
++      position: fixed;
++      inset: 0;
++      background: rgba(0, 0, 0, 0.45);
++      display: flex;
++      align-items: center;
++      justify-content: center;
++      z-index: 100;
++    }
++
++    .modal {
++      background: #fff;
++      padding: 22px;
++      border-radius: 14px;
++      max-width: 420px;
++      width: 90%;
++      border: 1px solid var(--border);
++      box-shadow: 0 18px 50px rgba(12, 28, 44, 0.18);
++    }
++
++    @media (max-width: 720px) {
++      nav { flex-wrap: wrap; position: static; }
++      .menu-button { width: 100%; justify-content: space-between; }
++      .dropdown-content { position: static; box-shadow: none; border: none; }
++      .dropdown { width: 100%; }
++    }
++  </style>
+ </head>
+ <body>
+-    <header>
+-        <h1>Maintenance CMDK</h1>
+-        <h2>Suivi des tâches de la maintenance CMDK</h2>
+-    </header>
+-    
+-    <nav>
+-        <button onclick="openTab('dashboard')">Tableau de Bord</button>
+-        <button onclick="openTab('userManagement')">Gestion des Utilisateurs</button>
+-        <button onclick="openTab('CMDG')">CMDG</button>
+-        <button onclick="openTab('CMDN')">CMDN</button>
+-        <button onclick="openTab('CMDLT')">CMDLT</button>
+-        <button onclick="openTab('CMDB')">CMDB</button>
+-        <button onclick="openTab('Manhattan')">Manhattan</button>
+-        <button onclick="openTab('Residence')">Residence</button>
+-        <button onclick="openTab('completed-tasks')">Tâches Terminées</button>
+-        <button onclick="showReports()">Rapports</button>
+-    </nav>
+-    
+-    <main>
+-        <!-- Dashboard -->
+-        <div id="dashboard" class="tab-content active">
+-            <h2>Tableau de Bord</h2>
+-            <div class="stats">
+-                <div class="stat" id="en-cours">Tâches en Cours : 0</div>
+-                <div class="stat" id="terminees">Tâches Terminées : 0</div>
+-                <div class="stat" id="en-attente">Tâches en Attente : 0</div>
+-            </div>
++  <div id="auth-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-title">
++    <div class="modal">
++      <h2 id="auth-title">Connexion professionnelle</h2>
++      <p>Utilisez votre adresse <strong>@cmd.cd</strong>. Seul <strong>mkhalife@cmd.cd</strong> est autorisé à créer et modifier les tâches.</p>
++      <form id="auth-form">
++        <label for="email">Email professionnel</label>
++        <input type="email" id="email" name="email" required placeholder="prenom.nom@cmd.cd" autocomplete="email">
++        <button type="submit" class="primary" style="margin-top: 12px; width: 100%;">Se connecter</button>
++      </form>
++      <p id="auth-error" class="alert" style="display:none; margin-top:12px;">Adresse invalide. Merci d'utiliser un email se terminant par @cmd.cd.</p>
++    </div>
++  </div>
++
++  <header>
++    <div class="titles">
++      <h1>Suivi des tâches de maintenance CMDK</h1>
++      <p>Sites CMDG · CMDN · CMDLT · CMDB · Résidence · Manhattan</p>
++    </div>
++    <div class="badge" id="access-badge">Accès restreint aux comptes @cmd.cd</div>
++  </header>
++
++  <nav>
++    <div class="dropdown">
++      <button class="menu-button">Sites ▼</button>
++      <div class="dropdown-content" id="site-menu"></div>
++    </div>
++    <div class="dropdown">
++      <button class="menu-button">Rapports ▼</button>
++      <div class="dropdown-content">
++        <a href="#rapports">Rapport mensuel</a>
++        <a href="#rapports">Rapport annuel</a>
++      </div>
++    </div>
++    <div class="dropdown">
++      <button class="menu-button">Archives ▼</button>
++      <div class="dropdown-content">
++        <a href="#archives">Tâches terminées</a>
++        <button type="button" id="archive-finished">Archiver les tâches terminées</button>
++      </div>
++    </div>
++    <div class="dropdown">
++      <button class="menu-button">Menu d'action ▼</button>
++      <div class="dropdown-content">
++        <a href="#nouvelle-tache">Ajouter une tâche</a>
++        <a href="#tableau">Tableau de bord</a>
++      </div>
++    </div>
++    <div style="margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
++      <span id="user-chip" class="badge">Déconnecté</span>
++      <button id="change-user" class="menu-button" style="min-width:auto;">Changer d'utilisateur</button>
++    </div>
++  </nav>
++
++  <main>
++    <section id="securite">
++      <div class="auth-banner" id="auth-banner">
++        <div>
++          <strong>Accès sécurisé :</strong> seules les adresses <strong>@cmd.cd</strong> sont acceptées. L'ajout et la modification sont réservés à <strong>mkhalife@cmd.cd</strong>.
+         </div>
+-
+-        <!-- User Management -->
+-        <div id="userManagement" class="tab-content">
+-            <h2>Gestion des Utilisateurs</h2>
+-            <form id="form-userManagement">
+-                <input type="email" id="newUserEmail" placeholder="Entrez l'email de l'utilisateur" required>
+-                <button type="button" onclick="ajouterUtilisateur()">Ajouter Utilisateur</button>
+-            </form>
+-            <table id="table-users">
+-                <thead>
+-                    <tr>
+-                        <th>Email</th>
+-@@ -267,208 +268,357 @@
+-        <!-- Manhattan -->
+-        <div id="Manhattan" class="tab-content">
+-            <h2>Manhattan - Suivi des Tâches</h2>
+-            <form id="form-Manhattan">
+-                <input type="text" id="tache-Manhattan" placeholder="Description de la tâche" required>
+-                <select id="statut-Manhattan" required>
+-                    <option value="">Statut</option>
+-                    <option value="En cours">En cours</option>
+-                    <option value="Terminée">Terminée</option>
+-                    <option value="En attente">En attente</option>
+-                </select>
+-                <input type="date" id="date-Manhattan" required>
+-                <button type="button" onclick="ajouterTache('Manhattan')">Ajouter Tâche</button>
+-            </form>
+-            <table id="table-Manhattan">
+-                <thead>
+-                    <tr>
+-                        <th>Tâche</th>
+-                        <th>Statut</th>
+-                        <th>Date</th>
+-                        <th>Actions</th>
+-                    </tr>
+-                </thead>
+-                <tbody></tbody>
+-            </table>
+-            <button onclick="exporterDonnees('Manhattan')">Exporter en CSV</button>
+-            <button type="button" onclick="effacerDonnees('Manhattan')">Effacer Toutes les Données</button>
++        <div id="role-label">Mode lecture seule</div>
++      </div>
++    </section>
++
++    <section id="tableau">
++      <h2>Tableau de bord global</h2>
++      <div class="stats-grid">
++        <div class="stat-card">
++          <h3>Tâches en attente</h3>
++          <div class="value" id="stat-waiting">0</div>
++          <small>Regroupées par site</small>
+         </div>
+-
+-        <!-- Residence -->
+-        <div id="Residence" class="tab-content">
+-            <h2>Residence - Suivi des Tâches</h2>
+-            <form id="form-Residence">
+-                <input type="text" id="tache-Residence" placeholder="Description de la tâche" required>
+-                <select id="statut-Residence" required>
+-                    <option value="">Statut</option>
+-                    <option value="En cours">En cours</option>
+-                    <option value="Terminée">Terminée</option>
+-                    <option value="En attente">En attente</option>
+-                </select>
+-                <input type="date" id="date-Residence" required>
+-                <button type="button" onclick="ajouterTache('Residence')">Ajouter Tâche</button>
+-            </form>
+-            <table id="table-Residence">
+-                <thead>
+-                    <tr>
+-                        <th>Tâche</th>
+-                        <th>Statut</th>
+-                        <th>Date</th>
+-                        <th>Actions</th>
+-                    </tr>
+-                </thead>
+-                <tbody></tbody>
+-            </table>
+-            <button onclick="exporterDonnees('Residence')">Exporter en CSV</button>
+-            <button type="button" onclick="effacerDonnees('Residence')">Effacer Toutes les Données</button>
++        <div class="stat-card">
++          <h3>Tâches en cours</h3>
++          <div class="value" id="stat-running">0</div>
++          <small>Suivi en direct</small>
+         </div>
+-
+-        <div id="completed-tasks" class="tab-content">
+-            <h2>Tâches Terminées</h2>
+-            <table id="table-completed">
+-                <thead>
+-                    <tr>
+-                        <th>Site</th>
+-                        <th>Tâche</th>
+-                        <th>Date</th>
+-                    </tr>
+-                </thead>
+-                <tbody></tbody>
+-            </table>
++        <div class="stat-card">
++          <h3>Tâches terminées</h3>
++          <div class="value" id="stat-done">0</div>
++          <small>Déplacées automatiquement dans les archives</small>
+         </div>
+-
+-        <div id="reports" class="tab-content">
+-            <h2>Rapports</h2>
+-            <p>Fonctionnalité à implémenter</p>
+-            <p>Les résumés de tâches sont générés automatiquement pour chaque site.</p>
++        <div class="stat-card">
++          <h3>Sites actifs</h3>
++          <div class="value" id="stat-sites">0</div>
++          <small>CMDG · CMDN · CMDLT · CMDB · Résidence · Manhattan</small>
+         </div>
+-
+-    </main>
+-    
+-    <footer>
+-        <p>Application créée par Grok 4 - xAI. Données stockées localement dans le navigateur.</p>
+-    </footer>
+-    
+-    <script>
+-        const adminEmail = "mkhalife@cmd.cd";
+-        const authorizedUsers = []; // Array to store authorized users
+-        const authorizedUsers = [];
+-        const siteIds = ['CMDG', 'CMDN', 'CMDLT', 'CMDB', 'Manhattan', 'Residence'];
+-
+-        document.addEventListener('DOMContentLoaded', () => {
+-            const storedUsers = JSON.parse(localStorage.getItem('authorizedUsers')) || [];
+-            const initialUsers = storedUsers.includes(adminEmail) ? storedUsers : [...storedUsers, adminEmail];
+-            authorizedUsers.push(...initialUsers);
+-            if (initialUsers.length !== storedUsers.length) {
+-                updateAllUsersData();
+-            }
+-            updateUsersTable();
+-            siteIds.forEach(chargerDonnees);
+-            updateDashboard();
+-            updateCompletedTasks();
+-        });
+-
+-        function openTab(tabId) {
+-            var tabs = document.querySelectorAll('.tab-content');
+-            tabs.forEach(function(tab) { tab.classList.remove('active'); });
+-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+-            document.getElementById(tabId).classList.add('active');
+-            chargerDonnees(tabId);
+-            if (siteIds.includes(tabId)) {
+-                chargerDonnees(tabId);
+-            }
+-            if (tabId === 'reports') {
+-                createReports();
+-            }
+-            updateDashboard();
+-            updateCompletedTasks();
+-        }
+-
+-        function ajouterUtilisateur() {
+-            const newUserEmail = document.getElementById('newUserEmail').value;
+-            if (!newUserEmail) return;
+-            const newUserEmail = document.getElementById('newUserEmail').value.trim();
+-            if (!newUserEmail) {
+-                alert('Veuillez saisir un email valide.');
+-                return;
+-            }
+-            if (authorizedUsers.includes(newUserEmail)) {
+-                alert('Utilisateur déjà ajouté.');
+-                return;
+-            }
+-
+-            authorizedUsers.push(newUserEmail);
+-            localStorage.setItem('authorizedUsers', JSON.stringify(authorizedUsers));
+-            alert('Utilisateur ajouté: ' + newUserEmail);
+-            updateUsersTable();
+-            document.getElementById('form-userManagement').reset();
+-        }
+-
+-        function updateUsersTable() {
+-            const tableBody = document.querySelector('#table-users tbody');
+-            tableBody.innerHTML = '';
+-            authorizedUsers.forEach(user => {
+-                const row = tableBody.insertRow();
+-                row.insertCell(0).textContent = user;
+-                const actionsCell = row.insertCell(1);
+-                const removeBtn = document.createElement('button');
+-                removeBtn.textContent = 'Supprimer';
+-                removeBtn.onclick = function() { supprimerUtilisateur(user); };
+-                actionsCell.appendChild(removeBtn);
+-            });
+-        }
+-
+-        function supprimerUtilisateur(user) {
+-            const index = authorizedUsers.indexOf(user);
+-            if (index > -1) {
+-                authorizedUsers.splice(index, 1);
+-                localStorage.setItem('authorizedUsers', JSON.stringify(authorizedUsers));
+-                updateUsersTable();
+-                alert('Utilisateur supprimé: ' + user);
+-            }
+-        }
+-
+-        const storageKey = (siteId) => 'taches-' + siteId;
+-
+-        function ajouterTache(siteId) {
+-            var tache = document.getElementById('tache-' + siteId).value;
+-            var statut = document.getElementById('statut-' + siteId).value;
+-            var date = document.getElementById('date-' + siteId).value;
+-            const tache = document.getElementById('tache-' + siteId).value.trim();
+-            const statut = document.getElementById('statut-' + siteId).value;
+-            const date = document.getElementById('date-' + siteId).value;
+-
+-            if (!tache || !statut || !date) {
+-                alert('Veuillez remplir tous les champs.');
+-                return;
+-            }
+-
+-            var tableBody = document.querySelector('#table-' + siteId + ' tbody');
+-            var row = tableBody.insertRow();
+-            row.insertCell(0).textContent = tache;
+-            row.insertCell(1).textContent = statut;
+-            row.insertCell(2).textContent = date;
+-
+-            var actionsCell = row.insertCell(3);
+-            var deleteBtn = document.createElement('button');
+-            deleteBtn.textContent = 'Supprimer';
+-            deleteBtn.onclick = function() { supprimerTache(this, siteId); };
+-            actionsCell.appendChild(deleteBtn);
+-            const data = chargerDonneesDepuisStockage(siteId);
+-            data.push({ tache, statut, date });
+-            sauvegarderDonnees(siteId, data);
+-
+-            alert('Nouvelle tâche ajoutée: ' + tache);
+-            sauvegarderDonnees(siteId);
+-            updateDashboard();
+-
+-            document.getElementById('form-' + siteId).reset();
+-        }
+-
+-        function supprimerTache(button, siteId) {
+-            if (!isAuthorized()) {
+-                alert('Vous n\'avez pas l\'autorisation de supprimer des tâches.');
+-                alert('Vous n\'avez pas l'autorisation de supprimer des tâches.');
+-                return;
+-            }
+-
+-            var row = button.parentNode.parentNode;
+-            if (row.cells[1].textContent === 'Terminée') {
+-                ajouterTacheCompletes(row.cells[0].textContent, row.cells[2].textContent);
+-            const row = button.closest('tr');
+-            const index = Number(row.dataset.index);
+-            const data = chargerDonneesDepuisStockage(siteId);
+-
+-            if (!Number.isNaN(index) && index >= 0 && index < data.length) {
+-                const [removed] = data.splice(index, 1);
+-                sauvegarderDonnees(siteId, data);
+-                alert('Tâche supprimée: ' + removed.tache);
+-            }
+-            row.parentNode.removeChild(row);
+-            alert('Tâche supprimée: ' + row.cells[0].textContent);
+-            sauvegarderDonnees(siteId);
+-            updateDashboard();
+-        }
+-
+-        function ajouterTacheCompletes(tache, date) {
+-            var tableBody = document.querySelector('#table-completed tbody');
+-            var completedRow = tableBody.insertRow();
+-            completedRow.insertCell(0).textContent = tache;
+-            completedRow.insertCell(1).textContent = date;
+-        }
+-        function updateCompletedTasks() {
+-            const tableBody = document.querySelector('#table-completed tbody');
+-            tableBody.innerHTML = '';
+-
+-        function sauvegarderDonnees(siteId) {
+-            var tableBody = document.querySelector('#table-' + siteId + ' tbody');
+-            var data = [];
+-            for (var i = 0; i < tableBody.rows.length; i++) {
+-                var row = tableBody.rows[i];
+-                data.push({
+-                    tache: row.cells[0].textContent,
+-                    statut: row.cells[1].textContent,
+-                    date: row.cells[2].textContent
+-            let totalCompleted = 0;
+-            siteIds.forEach(site => {
+-                const data = chargerDonneesDepuisStockage(site);
+-                data.filter(item => item.statut === 'Terminée').forEach(item => {
+-                    const completedRow = tableBody.insertRow();
+-                    completedRow.insertCell(0).textContent = site;
+-                    completedRow.insertCell(1).textContent = item.tache;
+-                    completedRow.insertCell(2).textContent = item.date;
+-                    totalCompleted += 1;
+-                });
+-            });
+-
+-            if (totalCompleted === 0) {
+-                const emptyRow = tableBody.insertRow();
+-                const emptyCell = emptyRow.insertCell(0);
+-                emptyCell.colSpan = 3;
+-                emptyCell.textContent = 'Aucune tâche terminée pour le moment.';
+-            }
+-            localStorage.setItem('taches-' + siteId, JSON.stringify(data));
+-            updateAllUsersData();
+-        }
+-
+-        function sauvegarderDonnees(siteId, data) {
+-            localStorage.setItem(storageKey(siteId), JSON.stringify(data));
+-            renderSiteTable(siteId, data);
+-            createReports();
+-            updateDashboard();
+-            updateCompletedTasks();
+-        }
+-
+-        function chargerDonnees(siteId) {
+-            var data = JSON.parse(localStorage.getItem('taches-' + siteId)) || [];
+-            var tableBody = document.querySelector('#table-' + siteId + ' tbody');
+-            const data = chargerDonneesDepuisStockage(siteId);
+-            renderSiteTable(siteId, data);
+-            updateDashboard();
+-            updateCompletedTasks();
+-        }
+-
+-        function effacerDonnees(siteId) {
+-            if (!confirm('Voulez-vous supprimer toutes les tâches de ' + siteId + ' ?')) {
+-                return;
+-            }
+-            localStorage.removeItem(storageKey(siteId));
+-            chargerDonnees(siteId);
+-            createReports();
+-            updateDashboard();
+-            updateCompletedTasks();
+-        }
+-
+-        function exporterDonnees(siteId) {
+-            const data = chargerDonneesDepuisStockage(siteId);
+-            if (data.length === 0) {
+-                alert('Aucune donnée à exporter pour ' + siteId + '.');
+-                return;
+-            }
+-
+-            const csvRows = ['Tâche,Statut,Date'];
+-            data.forEach(item => {
+-                const safeTask = item.tache.replace(/"/g, '""');
+-                csvRows.push(`"${safeTask}",${item.statut},${item.date}`);
+-            });
+-            const csvContent = csvRows.join('\n');
+-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+-            const url = URL.createObjectURL(blob);
+-            const link = document.createElement('a');
+-            link.href = url;
+-            link.download = siteId + '-taches.csv';
+-            link.click();
+-            URL.revokeObjectURL(url);
+-        }
+-
+-        function updateDashboard() {
+-            const counts = { 'En cours': 0, 'Terminée': 0, 'En attente': 0 };
+-            siteIds.forEach(site => {
+-                const data = chargerDonneesDepuisStockage(site);
+-                data.forEach(item => {
+-                    if (counts[item.statut] !== undefined) {
+-                        counts[item.statut] += 1;
+-                    }
+-                });
+-            });
+-
+-            document.getElementById('en-cours').textContent = 'Tâches en Cours : ' + counts['En cours'];
+-            document.getElementById('terminees').textContent = 'Tâches Terminées : ' + counts['Terminée'];
+-            document.getElementById('en-attente').textContent = 'Tâches en Attente : ' + counts['En attente'];
+-        }
+-
+-        function createReports() {
+-            const reportsContainer = document.getElementById('reports');
+-            let summary = document.getElementById('report-summary');
+-            if (summary) {
+-                summary.remove();
+-            }
+-            summary = document.createElement('div');
+-            summary.id = 'report-summary';
+-
+-            siteIds.forEach(site => {
+-                const data = chargerDonneesDepuisStockage(site);
+-                const totals = { 'En cours': 0, 'Terminée': 0, 'En attente': 0 };
+-                data.forEach(item => {
+-                    if (totals[item.statut] !== undefined) {
+-                        totals[item.statut] += 1;
+-                    }
+-                });
+-                const section = document.createElement('div');
+-                section.innerHTML = `<h3>${site}</h3>
+-                    <p>En cours : ${totals['En cours']}</p>
+-                    <p>Terminées : ${totals['Terminée']}</p>
+-                    <p>En attente : ${totals['En attente']}</p>`;
+-                summary.appendChild(section);
+-            });
+-
+-            reportsContainer.appendChild(summary);
+-        }
+-
+-        function showReports() {
+-            openTab('reports');
+-            createReports();
+-        }
+-
+-        function chargerDonneesDepuisStockage(siteId) {
+-            const data = JSON.parse(localStorage.getItem(storageKey(siteId))) || [];
+-            return Array.isArray(data) ? data : [];
+-        }
+-
+-        function renderSiteTable(siteId, data) {
+-            const tableBody = document.querySelector('#table-' + siteId + ' tbody');
+-            tableBody.innerHTML = '';
+-            data.forEach(function(item) {
+-                var row = tableBody.insertRow();
+-
+-            if (!data.length) {
+-                const emptyRow = tableBody.insertRow();
+-                const emptyCell = emptyRow.insertCell(0);
+-                emptyCell.colSpan = 4;
+-                emptyCell.textContent = 'Aucune tâche enregistrée pour le moment.';
+-                emptyRow.dataset.index = -1;
+-                return;
++      </div>
++      <div class="stats-grid" style="margin-top:14px;" id="site-stats"></div>
++    </section>
++
++    <section id="nouvelle-tache">
++      <h2>Ajouter une nouvelle tâche</h2>
++      <p class="muted">Les tâches sont automatiquement classées par site et statut. Les tâches terminées sont archivées pour ne pas surcharger le tableau de bord.</p>
++      <form id="task-form">
++        <div class="form-grid">
++          <div>
++            <label for="task-title">Titre</label>
++            <input id="task-title" name="title" required placeholder="Ex: Réparer le climatiseur de l'accueil">
++          </div>
++          <div>
++            <label for="task-site">Site</label>
++            <select id="task-site" name="site" required></select>
++          </div>
++          <div>
++            <label for="task-status">Statut initial</label>
++            <select id="task-status" name="status" required>
++              <option value="En attente">En attente</option>
++              <option value="En cours">En cours</option>
++              <option value="Terminée">Terminée (archiver)</option>
++            </select>
++          </div>
++        </div>
++        <div style="margin-top:10px;">
++          <label for="task-notes">Détails (facultatif)</label>
++          <textarea id="task-notes" name="notes" rows="3" placeholder="Numéro de salle, matériel concerné, équipe affectée…"></textarea>
++        </div>
++        <button type="submit" class="primary" style="margin-top:12px;" id="submit-task">Enregistrer la tâche</button>
++        <p class="alert" id="admin-warning" style="display:none; margin-top:12px;">Seul mkhalife@cmd.cd peut créer ou modifier des tâches. Vous êtes actuellement en lecture seule.</p>
++      </form>
++    </section>
++
++    <section id="sites">
++      <h2>Vue par site et par statut</h2>
++      <div class="board-grid" id="site-boards"></div>
++    </section>
++
++    <section id="rapports">
++      <h2>Rapports automatiques</h2>
++      <div class="reports-grid" id="report-cards"></div>
++      <div class="alert" style="margin-top:12px;">Les rapports sont calculés dynamiquement à partir des tâches créées au cours des 30 derniers jours (mensuel) et des 365 derniers jours (annuel).</div>
++    </section>
++
++    <section id="archives">
++      <h2>Tâches terminées (archives centralisées)</h2>
++      <p class="muted">Toutes les tâches marquées comme « Terminée » sont déplacées ici automatiquement.</p>
++      <div class="board-grid" id="archive-board"></div>
++    </section>
++  </main>
++
++  <script>
++    const SITES = ["CMDG", "CMDN", "CMDLT", "CMDB", "Résidence", "Manhattan"];
++    const STATUSES = ["En attente", "En cours", "Terminée"];
++    const STORAGE_KEYS = { active: "cmdk_tasks_active", archive: "cmdk_tasks_archive", user: "cmdk_user" };
++
++    let state = { active: [], archive: [], selectedSite: "Tous", currentUser: null };
++
++    const siteMenu = document.getElementById("site-menu");
++    const siteBoards = document.getElementById("site-boards");
++    const archiveBoard = document.getElementById("archive-board");
++    const siteStats = document.getElementById("site-stats");
++    const reportCards = document.getElementById("report-cards");
++
++    function loadState() {
++      state.active = JSON.parse(localStorage.getItem(STORAGE_KEYS.active) || "[]");
++      state.archive = JSON.parse(localStorage.getItem(STORAGE_KEYS.archive) || "[]");
++      state.currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.user) || "null");
++    }
++
++    function saveState() {
++      localStorage.setItem(STORAGE_KEYS.active, JSON.stringify(state.active));
++      localStorage.setItem(STORAGE_KEYS.archive, JSON.stringify(state.archive));
++    }
++
++    function saveUser(user) {
++      state.currentUser = user;
++      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
++    }
++
++    function isAdmin() {
++      return state.currentUser?.email?.toLowerCase() === "mkhalife@cmd.cd";
++    }
++
++    function isProfessional() {
++      return state.currentUser?.email?.toLowerCase().endsWith("@cmd.cd");
++    }
++
++    function ensureAuthUI() {
++      const badge = document.getElementById("user-chip");
++      const roleLabel = document.getElementById("role-label");
++      const badgeText = state.currentUser ? state.currentUser.email : "Déconnecté";
++      badge.textContent = badgeText;
++      badge.style.background = isAdmin() ? "#dcfce7" : "#e0f2fe";
++      badge.style.color = isAdmin() ? "#166534" : "#0b3c68";
++
++      roleLabel.textContent = isAdmin() ? "Mode édition (mkhalife@cmd.cd)" : "Mode lecture seule";
++      document.getElementById("admin-warning").style.display = isAdmin() ? "none" : "block";
++      document.getElementById("submit-task").disabled = !isAdmin();
++      document.getElementById("archive-finished").disabled = !isAdmin();
++    }
++
++    function openAuthModal(showError = false) {
++      document.getElementById("auth-modal").style.display = "flex";
++      document.getElementById("auth-error").style.display = showError ? "block" : "none";
++    }
++
++    function closeAuthModal() {
++      document.getElementById("auth-modal").style.display = "none";
++    }
++
++    function configureSiteMenu() {
++      siteMenu.innerHTML = "";
++      const allBtn = document.createElement("button");
++      allBtn.textContent = "Tous les sites";
++      allBtn.onclick = () => { state.selectedSite = "Tous"; render(); };
++      siteMenu.appendChild(allBtn);
++      SITES.forEach(site => {
++        const btn = document.createElement("button");
++        btn.textContent = site;
++        btn.onclick = () => { state.selectedSite = site; render(); };
++        siteMenu.appendChild(btn);
++      });
++    }
++
++    function addTask(task) {
++      const record = {
++        id: crypto.randomUUID(),
++        title: task.title.trim(),
++        site: task.site,
++        status: task.status,
++        notes: task.notes?.trim() || "",
++        createdAt: new Date().toISOString(),
++      };
++
++      if (record.status === "Terminée") {
++        record.archivedAt = new Date().toISOString();
++        state.archive.push(record);
++      } else {
++        state.active.push(record);
++      }
++
++      saveState();
++      render();
++    }
++
++    function moveToArchive(taskId) {
++      const idx = state.active.findIndex(t => t.id === taskId);
++      if (idx === -1) return;
++      const [task] = state.active.splice(idx, 1);
++      task.status = "Terminée";
++      task.archivedAt = new Date().toISOString();
++      state.archive.push(task);
++      saveState();
++      render();
++    }
++
++    function migrateFinishedTasks() {
++      const finished = state.active.filter(t => t.status === "Terminée");
++      finished.forEach(t => moveToArchive(t.id));
++    }
++
++    function updateTaskStatus(taskId, newStatus) {
++      const task = state.active.find(t => t.id === taskId);
++      if (!task) return;
++      task.status = newStatus;
++      if (newStatus === "Terminée") {
++        moveToArchive(taskId);
++        return;
++      }
++      saveState();
++      render();
++    }
++
++    function renderDashboard() {
++      const waiting = state.active.filter(t => t.status === "En attente").length;
++      const running = state.active.filter(t => t.status === "En cours").length;
++      const done = state.archive.length;
++      document.getElementById("stat-waiting").textContent = waiting;
++      document.getElementById("stat-running").textContent = running;
++      document.getElementById("stat-done").textContent = done;
++      document.getElementById("stat-sites").textContent = SITES.length;
++
++      siteStats.innerHTML = "";
++      SITES.forEach(site => {
++        const w = state.active.filter(t => t.site === site && t.status === "En attente").length;
++        const r = state.active.filter(t => t.site === site && t.status === "En cours").length;
++        const d = state.archive.filter(t => t.site === site).length;
++        const card = document.createElement("div");
++        card.className = "stat-card";
++        card.innerHTML = `<h3>${site}</h3>
++          <div class="value">${w + r + d}</div>
++          <small>${w} attente · ${r} en cours · ${d} terminée(s)</small>`;
++        siteStats.appendChild(card);
++      });
++    }
++
++    function statusPillClass(status) {
++      if (status === "En attente") return "status-pill waiting";
++      if (status === "En cours") return "status-pill running";
++      return "status-pill done";
++    }
++
++    function renderSiteBoards() {
++      siteBoards.innerHTML = "";
++      const sitesToRender = state.selectedSite === "Tous" ? SITES : [state.selectedSite];
++      sitesToRender.forEach(site => {
++        const column = document.createElement("div");
++        column.className = "board-column";
++        column.innerHTML = `<h3>${site}</h3>`;
++        STATUSES.filter(s => s !== "Terminée").forEach(status => {
++          const header = document.createElement("div");
++          header.className = "task-header";
++          header.innerHTML = `<strong>${status}</strong><span class="muted">${state.active.filter(t => t.site === site && t.status === status).length} tâche(s)</span>`;
++          column.appendChild(header);
++
++          const tasks = state.active.filter(t => t.site === site && t.status === status);
++          if (!tasks.length) {
++            const empty = document.createElement("p");
++            empty.className = "muted";
++            empty.textContent = "Aucune tâche";
++            column.appendChild(empty);
++          }
++
++          tasks.forEach(task => {
++            const card = document.createElement("div");
++            card.className = "task-card";
++            card.innerHTML = `
++              <div class="task-header">
++                <span>${task.title}</span>
++                <span class="${statusPillClass(task.status)}">${task.status}</span>
++              </div>
++              <div class="muted">Créée le ${new Date(task.createdAt).toLocaleDateString()}</div>
++              ${task.notes ? `<div>${task.notes}</div>` : ""}
++            `;
++
++            if (isAdmin()) {
++              const actions = document.createElement("div");
++              actions.className = "actions";
++              const select = document.createElement("select");
++              STATUSES.forEach(s => {
++                const opt = document.createElement("option");
++                opt.value = s;
++                opt.textContent = s;
++                opt.selected = s === task.status;
++                select.appendChild(opt);
++              });
++              select.onchange = (e) => updateTaskStatus(task.id, e.target.value);
++              const archiveBtn = document.createElement("button");
++              archiveBtn.className = "link-btn";
++              archiveBtn.textContent = "Archiver";
++              archiveBtn.onclick = () => moveToArchive(task.id);
++              actions.appendChild(select);
++              actions.appendChild(archiveBtn);
++              card.appendChild(actions);
+             }
+ 
+-            data.forEach((item, index) => {
+-                const row = tableBody.insertRow();
+-                row.dataset.index = index;
+-                row.insertCell(0).textContent = item.tache;
+-                row.insertCell(1).textContent = item.statut;
+-                row.insertCell(2).textContent = item.date;
+-
+-                var actionsCell = row.insertCell(3);
+-                var deleteBtn = document.createElement('button');
+-                const actionsCell = row.insertCell(3);
+-                const deleteBtn = document.createElement('button');
+-                deleteBtn.textContent = 'Supprimer';
+-                deleteBtn.onclick = function() { supprimerTache(this, siteId); };
+-                actionsCell.appendChild(deleteBtn);
+-            });
+-        }
+-
+-        function updateAllUsersData() {
+-            localStorage.setItem('authorizedUsers', JSON.stringify(authorizedUsers));
+-        }
+-
+-        function isAuthorized() {
+-            return true;
+-        }
+-    </script>
++            column.appendChild(card);
++          });
++        });
++        siteBoards.appendChild(column);
++      });
++    }
++
++    function renderArchive() {
++      archiveBoard.innerHTML = "";
++      if (!state.archive.length) {
++        const empty = document.createElement("p");
++        empty.className = "muted";
++        empty.textContent = "Aucune tâche terminée pour le moment.";
++        archiveBoard.appendChild(empty);
++        return;
++      }
++
++      SITES.forEach(site => {
++        const items = state.archive.filter(t => t.site === site);
++        if (!items.length) return;
++        const column = document.createElement("div");
++        column.className = "board-column";
++        column.innerHTML = `<h3>${site}</h3>`;
++        items.forEach(task => {
++          const card = document.createElement("div");
++          card.className = "task-card";
++          card.innerHTML = `
++            <div class="task-header">
++              <span>${task.title}</span>
++              <span class="${statusPillClass("Terminée")}">Terminée</span>
++            </div>
++            <div class="muted">Créée le ${new Date(task.createdAt).toLocaleDateString()}</div>
++            ${task.notes ? `<div>${task.notes}</div>` : ""}
++          `;
++          column.appendChild(card);
++        });
++        archiveBoard.appendChild(column);
++      });
++    }
++
++    function buildReportCard(title, rangeDays) {
++      const since = Date.now() - rangeDays * 24 * 60 * 60 * 1000;
++      const dataset = [...state.active, ...state.archive].filter(t => new Date(t.createdAt).getTime() >= since);
++      const totals = SITES.map(site => {
++        const tasks = dataset.filter(t => t.site === site);
++        const summary = {
++          waiting: tasks.filter(t => t.status === "En attente").length,
++          running: tasks.filter(t => t.status === "En cours").length,
++          done: tasks.filter(t => t.status === "Terminée" || state.archive.some(a => a.id === t.id)).length,
++        };
++        return { site, count: tasks.length, summary };
++      });
++
++      const container = document.createElement("div");
++      container.className = "stat-card";
++      const totalCount = totals.reduce((sum, t) => sum + t.count, 0);
++      container.innerHTML = `<h3>${title}</h3>
++        <div class="value">${totalCount} tâche(s)</div>
++        <small>Filtre sur ${rangeDays} jours</small>`;
++
++      totals.forEach(item => {
++        const line = document.createElement("div");
++        line.className = "muted";
++        line.textContent = `${item.site} · ${item.summary.waiting} attente · ${item.summary.running} en cours · ${item.summary.done} terminée(s)`;
++        container.appendChild(line);
++      });
++
++      const exportBtn = document.createElement("button");
++      exportBtn.className = "link-btn";
++      exportBtn.textContent = "Exporter en CSV";
++      exportBtn.onclick = () => exportCsv(dataset, `${title.replace(/\s+/g, "-").toLowerCase()}`);
++      container.appendChild(exportBtn);
++      return container;
++    }
++
++    function exportCsv(rows, filename) {
++      if (!rows.length) {
++        alert("Aucune donnée à exporter.");
++        return;
++      }
++      const header = ["Titre", "Site", "Statut", "Créée le", "Notes"];
++      const data = rows.map(r => [r.title, r.site, r.status, new Date(r.createdAt).toLocaleDateString(), (r.notes || "").replace(/\n/g, " ")]);
++      const csv = [header, ...data].map(line => line.map(cell => `"${cell.replace(/"/g, '""')}"`).join(",")).join("\n");
++      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
++      const link = document.createElement("a");
++      link.href = URL.createObjectURL(blob);
++      link.download = `${filename}.csv`;
++      link.click();
++      URL.revokeObjectURL(link.href);
++    }
++
++    function renderReports() {
++      reportCards.innerHTML = "";
++      reportCards.appendChild(buildReportCard("Rapport mensuel", 30));
++      reportCards.appendChild(buildReportCard("Rapport annuel", 365));
++    }
++
++    function render() {
++      renderDashboard();
++      renderSiteBoards();
++      renderArchive();
++      renderReports();
++    }
++
++    document.getElementById("task-form").addEventListener("submit", (e) => {
++      e.preventDefault();
++      if (!isAdmin()) return;
++      const title = document.getElementById("task-title").value;
++      const site = document.getElementById("task-site").value;
++      const status = document.getElementById("task-status").value;
++      const notes = document.getElementById("task-notes").value;
++      addTask({ title, site, status, notes });
++      e.target.reset();
++    });
++
++    document.getElementById("archive-finished").addEventListener("click", () => {
++      if (!isAdmin()) return;
++      migrateFinishedTasks();
++    });
++
++    document.getElementById("change-user").addEventListener("click", () => {
++      openAuthModal();
++    });
++
++    document.getElementById("auth-form").addEventListener("submit", (e) => {
++      e.preventDefault();
++      const email = document.getElementById("email").value.trim();
++      if (!email.toLowerCase().endsWith("@cmd.cd")) {
++        document.getElementById("auth-error").style.display = "block";
++        return;
++      }
++      saveUser({ email });
++      ensureAuthUI();
++      closeAuthModal();
++      render();
++    });
++
++    function init() {
++      loadState();
++      configureSiteMenu();
++      const selectSite = document.getElementById("task-site");
++      SITES.forEach(site => {
++        const opt = document.createElement("option");
++        opt.value = site;
++        opt.textContent = site;
++        selectSite.appendChild(opt);
++      });
++      ensureAuthUI();
++      render();
++      if (!isProfessional()) {
++        openAuthModal();
++      } else {
++        closeAuthModal();
++      }
++    }
++
++    init();
++  </script>
+ </body>
+ </html>
